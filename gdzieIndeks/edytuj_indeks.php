@@ -10,7 +10,7 @@ include_once 'header.php';
 	<h2><span><strong>PANEL MODERATOR</strong> edycja indeksów</span></h2>
 	<div id="items">
 		<?php
-		if(isset($_SESSION['login']) && isset($_SESSION['id']) && ($_SESSION['grupa']==2 || $_SESSION['grupa']==4)) {
+		if(isset($_SESSION['login']) && isset($_SESSION['id']) && ($_SESSION['grupa']==2 || $_SESSION['grupa']==4 || $_SESSION['grupa']==3)) {
 			$connect = mysql_connect ( $ADRES, $ADMIN, $ADMINPASS );
 			$baza = mysql_select_db ( $BAZADANYCH );
 			$login = $_SESSION ['login'];
@@ -285,90 +285,93 @@ include_once 'header.php';
 			if (isset ( $_GET ['zm'] )) {
 				if (isset ( $_GET ['mode'] )) {
 					$data = date ( 'Y-m-d' );
-					if ($tryb == 'zi') {
-						echo '<div>Zarządzanie Indeksami</div><center>';
-						//======================================================================
-						// Tryb indeks dodaj
-						//======================================================================
-						if ($opcja == 'dodaj') {
-							$numer = $_POST ['numerIndeks'];
-							$idKierunek = $_POST ['kierunek'];
-							$idStudent = $_POST ['student'];
-							$utworzenie = $_POST ['utworzenie'];
-							$query = mysql_query ( "SELECT idIndeks FROM indeks WHERE nrIndeks='$numer'" );
-							$query1 = mysql_query ( "SELECT idIndeks FROM indeks WHERE idKierunek='$idKierunek' && idUzytkownik='$idStudent'" );
-							if (mysql_num_rows ( $query ) != 0 || empty ( $numer )) {
-								echo "<p>Indeks już istnieje lub nie podano numeru indeksu</p>";
-								zi_dodaj ();
-							} else if (mysql_num_rows ( $query1 ) != 0) {
-								echo "<p>Student już posiada indeks na tym kierunku</p>";
-								zi_dodaj ();
-							} else {
-								if(sprData($utworzenie)){ 
-									$spr = $data - $utworzenie;
-									if($spr >= 0) {
-										$query = mysql_query ( "INSERT INTO indeks(nrIndeks, idUzytkownik, idKierunek, utworzenie, status_2) VALUES('$numer','$idStudent','$idKierunek','$utworzenie',0)" );
-										$query = mysql_query ( "SELECT idIndeks FROM indeks WHERE nrIndeks='$numer'");
-										$idIndeks = mysql_result ($query,0,'idIndeks');
-										$query = mysql_query ( "INSERT INTO rejestratorZdarzenia(idIndeks, idMiejsce, idUzytkownik, dataOtrzymania, stasus, opis) VALUES('$idIndeks',1,'$id','$data',1,'Wykonanie indeksu')" );
-										echo "Dodawanie indeksu ukończone<br/>";
-									} else {
-										echo "Data się nie zgadza";
-										zi_dodaj ();
-									}
-								} else {
-									echo "Zły format daty";
-									zi_dodaj ();
-								}
-							}
-						//======================================================================
-						// Tryb indeks edytuj
-						//======================================================================
-						} else if ($opcja == 'edycja') {
-								$idStudent = $_POST ['student'];
+					if($_SESSION['grupa']==2 || $_SESSION['grupa']==4){
+						if ($tryb == 'zi') {
+							echo '<div>Zarządzanie Indeksami</div><center>';
+							//======================================================================
+							// Tryb indeks dodaj
+							//======================================================================
+							if ($opcja == 'dodaj') {
+								$numer = $_POST ['numerIndeks'];
 								$idKierunek = $_POST ['kierunek'];
-								$idIndeks = $_POST ['numerIndeks'];
-								$numer = $_POST ['zmiana_numeru'];
-								$utworzenie = $_POST ['zmiana_utworzenie'];
-								$zakonczenie = $_POST ['zmiana_zakonczenie'];
+								$idStudent = $_POST ['student'];
+								$utworzenie = $_POST ['utworzenie'];
 								$query = mysql_query ( "SELECT idIndeks FROM indeks WHERE nrIndeks='$numer'" );
 								$query1 = mysql_query ( "SELECT idIndeks FROM indeks WHERE idKierunek='$idKierunek' && idUzytkownik='$idStudent'" );
-								if (mysql_num_rows ( $query ) != 0) {
-									echo "<p>Indeks już istnieje</p>";
+								if (mysql_num_rows ( $query ) != 0 || empty ( $numer )) {
+									echo "<p>Indeks już istnieje lub nie podano numeru indeksu</p>";
+									zi_dodaj ();
 								} else if (mysql_num_rows ( $query1 ) != 0) {
 									echo "<p>Student już posiada indeks na tym kierunku</p>";
+									zi_dodaj ();
 								} else {
-									if(!empty($numer))
-										$query = mysql_query ( "UPDATE indeks SET nrIndeks='$numer', idUzytkownik='$idStudent' WHERE idIndeks='$idIndeks'" );
-									if($idKierunek!=0)
-										$query = mysql_query ( "UPDATE indeks SET idUzytkownik='$idStudent', idKierunek='$idKierunek' WHERE idIndeks='$idIndeks'" );
-									if((empty($utworzenie) || sprData($utworzenie)) && (empty($zakonczenie) || sprData($zakonczenie))){ 
-										$spr1 = $zakonczenie - $utworzenie;
-										if($spr1 >= 0 || empty($utworzenie) || empty($zakonczenie)) {
-											$spr1 = $data - $utworzenie;
-											$spr2 = $data - $zakonczenie;
-											if ( !empty ( $utworzenie) && $spr1 >=0)
-												$query = mysql_query ( "UPDATE indeks SET utworzenie='$utworzenie' WHERE idIndeks='$idIndeks'" );
-											if ( !empty ( $zakonczenie) && $spr2 >=0)
-												$query = mysql_query ( "UPDATE indeks SET zakonczenie='$zakonczenie', status_2=1 WHERE idIndeks='$idIndeks'" );
+									if(sprData($utworzenie)){ 
+										$spr = $data - $utworzenie;
+										if($spr >= 0) {
+											$query = mysql_query ( "INSERT INTO indeks(nrIndeks, idUzytkownik, idKierunek, utworzenie, status_2) VALUES('$numer','$idStudent','$idKierunek','$utworzenie',0)" );
+											$query = mysql_query ( "SELECT idIndeks FROM indeks WHERE nrIndeks='$numer'");
+											$idIndeks = mysql_result ($query,0,'idIndeks');
+											$query = mysql_query ( "INSERT INTO rejestratorZdarzenia(idIndeks, idMiejsce, idUzytkownik, dataOtrzymania, stasus, opis) VALUES('$idIndeks',1,'$id','$data',1,'Wykonanie indeksu')" );
+											echo "Dodawanie indeksu ukończone<br/>";
 										} else {
-											echo "Daty się nie zgadzają";
+											echo "Data się nie zgadza";
+											zi_dodaj ();
 										}
 									} else {
 										echo "Zły format daty";
+										zi_dodaj ();
 									}
-									if ( isset ($_POST ['status']))
-										$query = mysql_query ( "UPDATE indeks SET status_2=1, zakonczenie='$data' WHERE idIndeks='$idIndeks'" );
-									//else
-										//$query = mysql_query ( "UPDATE indeks SET status_2=0, zakonczenie=NULL WHERE idIndeks='$idIndeks'" );
-									if ($query) 
-										echo "<p>Edycja indeksu ukończona</p>";
-									 else
-										echo "<p>Błąd! Pozostały stare dane</p>";
 								}
-						}
-						echo '<p><a href="indeks.php">Powrót do panelu</a>&emsp;::&emsp;<a href="edytuj_indeks.php?mode=zi">Zarządzanie indeksami</a></p>';
-					} else if ($tryb == 'si') {
+							//======================================================================
+							// Tryb indeks edytuj
+							//======================================================================
+							} else if ($opcja == 'edycja') {
+									$idStudent = $_POST ['student'];
+									$idKierunek = $_POST ['kierunek'];
+									$idIndeks = $_POST ['numerIndeks'];
+									$numer = $_POST ['zmiana_numeru'];
+									$utworzenie = $_POST ['zmiana_utworzenie'];
+									$zakonczenie = $_POST ['zmiana_zakonczenie'];
+									$query = mysql_query ( "SELECT idIndeks FROM indeks WHERE nrIndeks='$numer'" );
+									$query1 = mysql_query ( "SELECT idIndeks FROM indeks WHERE idKierunek='$idKierunek' && idUzytkownik='$idStudent'" );
+									if (mysql_num_rows ( $query ) != 0) {
+										echo "<p>Indeks już istnieje</p>";
+									} else if (mysql_num_rows ( $query1 ) != 0) {
+										echo "<p>Student już posiada indeks na tym kierunku</p>";
+									} else {
+										if(!empty($numer))
+											$query = mysql_query ( "UPDATE indeks SET nrIndeks='$numer', idUzytkownik='$idStudent' WHERE idIndeks='$idIndeks'" );
+										if($idKierunek!=0)
+											$query = mysql_query ( "UPDATE indeks SET idUzytkownik='$idStudent', idKierunek='$idKierunek' WHERE idIndeks='$idIndeks'" );
+										if((empty($utworzenie) || sprData($utworzenie)) && (empty($zakonczenie) || sprData($zakonczenie))){ 
+											$spr1 = $zakonczenie - $utworzenie;
+											if($spr1 >= 0 || empty($utworzenie) || empty($zakonczenie)) {
+												$spr1 = $data - $utworzenie;
+												$spr2 = $data - $zakonczenie;
+												if ( !empty ( $utworzenie) && $spr1 >=0)
+													$query = mysql_query ( "UPDATE indeks SET utworzenie='$utworzenie' WHERE idIndeks='$idIndeks'" );
+												if ( !empty ( $zakonczenie) && $spr2 >=0)
+													$query = mysql_query ( "UPDATE indeks SET zakonczenie='$zakonczenie', status_2=1 WHERE idIndeks='$idIndeks'" );
+											} else {
+												echo "Daty się nie zgadzają";
+											}
+										} else {
+											echo "Zły format daty";
+										}
+										if ( isset ($_POST ['status']))
+											$query = mysql_query ( "UPDATE indeks SET status_2=1, zakonczenie='$data' WHERE idIndeks='$idIndeks'" );
+										//else
+											//$query = mysql_query ( "UPDATE indeks SET status_2=0, zakonczenie=NULL WHERE idIndeks='$idIndeks'" );
+										if ($query) 
+											echo "<p>Edycja indeksu ukończona</p>";
+										 else
+											echo "<p>Błąd! Pozostały stare dane</p>";
+									}
+							}
+							echo '<p><a href="indeks.php">Powrót do panelu</a>&emsp;::&emsp;<a href="edytuj_indeks.php?mode=zi">Zarządzanie indeksami</a></p>';
+						} 
+					}
+					if ($tryb == 'si') {
 						//======================================================================
 						// Tryb zdarzenie dodaj
 						//======================================================================
@@ -490,15 +493,16 @@ include_once 'header.php';
 			//======================================================================
 			} else {
 				if (isset ( $_GET ['mode'] )) {
-					if ($tryb == 'zi') {
-						echo '<div>Zarządzanie Indeksami</div><center>';
-						zi_dodaj();
-						echo "<hr/>";
-						zi_edytuj();
-						echo "<hr/>";
-						echo '<p><a href="indeks.php">Powrót do panelu</a></p></center>';
+					if($_SESSION['grupa']==2 || $_SESSION['grupa']==4){
+						if ($tryb == 'zi') {
+							echo '<div>Zarządzanie Indeksami</div><center>';
+							zi_dodaj();
+							echo "<hr/>";
+							zi_edytuj();
+							echo "<hr/>";
+							echo '<p><a href="indeks.php">Powrót do panelu</a></p></center>';
+						}
 					}
-
 					if ($tryb == 'si') {
 						echo '<div>Zarządzanie rejestrami zdarzeń</div><center>';
 						si_dodaj();
